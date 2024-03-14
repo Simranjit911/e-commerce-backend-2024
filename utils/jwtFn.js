@@ -12,7 +12,9 @@ export function getToken(id) {
 
     let options = {
         expires: new Date(expires),
-        httpOnly: true
+        httpOnly: true,
+        secure:true,
+        sameSite:true
     };
 
     let data = {

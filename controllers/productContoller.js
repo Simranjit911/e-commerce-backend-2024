@@ -59,10 +59,14 @@ export async function getOneProduct(req, res) {
 // get all product with filters
 export async function getAllProduct(req, res) {
     try {
-        const { name, desc, rating, isRecom, isNew, isLatest, price, resultsPerPage = 6, page = 1 } = req.query;
+        console.log("query",req.query)
+        const { name, desc, rating, isRecom, isNew, isLatest, price, resultsPerPage = 6, page = 1 ,category} = req.query;
         let filter = {};
         if (name) {
             filter.name = { $regex: name, $options: 'i' };
+        }
+        if (category) {
+            filter.category = { $regex: category, $options: 'i' };
         }
         if (desc) {
             filter.desc = { $regex: desc, $options: 'i' };

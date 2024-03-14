@@ -1,48 +1,85 @@
 import userModel from "../models/userModel.js";
 import bcrypt from 'bcryptjs'
 import { generateResetToken, getToken, sendResetMail } from "../utils/jwtFn.js";
-
 import { hashPass } from "../utils/hashPass.js";
+import dotenv from 'dotenv';
+import cloudinary from 'cloudinary';
+import multer from 'multer'
+import checkAndDeleteFolder from "../utils/deleteFolder.js";
+import deleteAllFilesInDirectory from "../utils/deleteFolder.js";
+let uploader = multer({
+    storage: multer.diskStorage({}),
 
+})
+dotenv.config();
+cloudinary.config({
+    cloud_name: 'di5nmtbi1',
+    api_key: '238376317584896',
+    api_secret: '-_mH_lhK1vex4BIf93UXE80T1TE',
+    secure: true,
+});
 //user routes
 export async function registerUser(req, res) {
     try {
-        let { name, email, password, avatar } = req.body;
+        const { name, email, password } = req.body;
+        const { avatar } = req.files;
+        console.log(req.body)
+        console.log(avatar)
+        const findUser = await userModel.findOne({ email });
 
-        // Check if the user already exists
-        let findUser = await userModel.findOne({ email });
         if (findUser) {
-            return res.status(400).json({ msg: "User Already Registered! Use another email" });
+            return res.status(403).json({ msg: "User Already Registered!" });
+        } else {
+            cloudinary.v2.uploader.upload(avatar.tempFilePath, {
+                folder: "avatars",
+                width: 150,
+                crop: "scale"
+            })
+                .then(async (result) => {
+                    console.log(result)
+                    const hashPassword = await hashPass(password);
+
+                    const newUser = await userModel.create({
+                        name,
+                        email,
+                        password: hashPassword,
+                        avatar: {
+                            public_id: result.public_id,
+                            url: result.secure_url
+                        }
+                    });
+
+                    const { options, token } = getToken(newUser._id);
+
+                     deleteAllFilesInDirectory().then((rs)=>{
+                         res.cookie("token", token, options)
+                         res.status(201).json({ msg: "User Registered Successfully!", newUser, token });
+                     }).catch((er)=>{
+                        console.log(er)
+                     })
+                  
+
+                }).catch((e) => {
+                    res.status(406).json({ msg: "User Registration Failed!", e });
+
+                    console.log(e)
+                })
+
+
+
+
         }
-
-        // Generate salt and hash the password
-        let hashPassword = await hashPass(password)
-
-        // Add user
-        let newUser = await userModel.create({
-            name,
-            email,
-            password: hashPassword,
-            avatar: {
-                public_id: "sample id",
-                url: "sample url"
-            }
-        });
-
-        // Get token
-        let { options, token } = getToken(newUser._id);
-
-        res.status(201).cookie("token", token, options).json({ msg: "User Registered!", newUser, token });
     } catch (error) {
-        res.status(500).json({ msg: "User Registration Failed!", error });
+        return res.status(500).json({ msg: "User Registration Failed!", error });
     }
 }
+
 export async function loginUser(req, res) {
     try {
         let { password, email } = req.body
         let userExists = await userModel.findOne({ email })
         if (!userExists) {
-            return res.status(404).json({ msg: "Invalid Email or Password" });
+            return res.status(403).json({ msg: "Invalid Email or Password" });
         }
         let passMatch = await bcrypt.compare(password, userExists.password)
 
@@ -51,8 +88,9 @@ export async function loginUser(req, res) {
         }
 
         let { token, options } = getToken(userExists._id)
-
-        res.status(200).cookie("token", token, options).json({ msg: "Login Successfull", userExists, token });
+        console.log(token, options)
+        res.cookie("token", token, options)
+        res.status(200).json({ msg: "Login Successfull", userExists, token });
 
 
     } catch (error) {
