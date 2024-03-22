@@ -5,7 +5,9 @@ import orderModel from "../models/orderModel.js";
 //ceate order
 export async function createOrder(req, res) {
     try {
+        console.log(req.body)
         let { userDetails, user, orderedItems } = req.body
+        console.log("recieved data", user, userDetails)
         user = req.user._id
 
         userDetails.user = req.user._id
@@ -13,12 +15,12 @@ export async function createOrder(req, res) {
 
         orderedItems.map(async (item) => {
             let product = await productModel.findById(item.productId)
-            console.log(product, product.stock)
-            product.stock -= item.qty
+          product.stock -= item.qty
             await product.save({ validateBeforeSave: false })
         })
 
         let order = await orderModel.create({ ...req.body })
+        console.log("order",order)
         res.status(200).json({ msg: "Order created!", order })
 
 

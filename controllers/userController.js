@@ -13,9 +13,9 @@ let uploader = multer({
 })
 dotenv.config();
 cloudinary.config({
-    cloud_name: 'di5nmtbi1',
-    api_key: '238376317584896',
-    api_secret: '-_mH_lhK1vex4BIf93UXE80T1TE',
+    cloud_name: process.env.CN_CLOUD_NAME,
+    api_key: process.env.CN_API_KEY,
+    api_secret: process.env.CN_API_SECRET,
     secure: true,
 });
 //user routes
@@ -200,6 +200,7 @@ export async function getProfile(req, res) {
 //Admin routers
 export async function getAllUsers(req, res) {
     try {
+        
         let allUsers = await userModel.find({})
         let totalsUsers = await userModel.countDocuments()
         res.status(200).json({ msg: "All Users", allUsers, totalsUsers })

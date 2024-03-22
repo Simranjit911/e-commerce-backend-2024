@@ -58,20 +58,20 @@ let orderSchema = new mongoose.Schema({
         type: String,
         default: "no"
     },
-    paymentInfo: {
-        id: {
-            type: String,
-            required: true
+    // paymentInfo: {
+    //     id: {
+    //         type: String,
+    //         required: true
 
-        },
-        status: {
-            type: String,
-            required: true
-        }
-    },
+    //     },
+    //     status: {
+    //         type: String,
+    //         required: true
+    //     }
+    // },
     paidAt: {
         type: Date,
-        default: Date.now
+        default: Date.now()
     },
     itemPrice: {
         type: Number,
@@ -82,7 +82,7 @@ let orderSchema = new mongoose.Schema({
     shippingPrice: {
         type: Number,
         default: 0,
-        required: true
+        // required: true
 
     },
     totalPrice: {
@@ -91,12 +91,12 @@ let orderSchema = new mongoose.Schema({
         required: true
 
     },
-    taxPrice: {
-        type: Number,
-        default: 0,
-        required: true
+    // taxPrice: {
+    //     type: Number,
+    //     default: 0,
+    //     required: true
 
-    }
+    // }
 
 }, { timestamps: true })
 
